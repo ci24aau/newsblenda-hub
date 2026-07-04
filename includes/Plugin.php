@@ -7,6 +7,7 @@ use Newsblenda\Editorial\Auth\Registration;
 use Newsblenda\Editorial\Auth\PasswordReset;
 use Newsblenda\Editorial\Auth\EmailVerification;
 use Newsblenda\Editorial\Frontend\AuthorDashboard;
+use Newsblenda\Editorial\Frontend\Profile;
 
 /**
  * Main plugin bootstrapper.
@@ -86,6 +87,10 @@ class Plugin {
         // Author dashboard
         add_action( 'init', [ AuthorDashboard::class, 'init' ] );
         add_action( 'wp_enqueue_scripts', [ AuthorDashboard::class, 'enqueue_assets' ] );
+
+        // Profile management
+        add_action( 'init', [ Profile::class, 'init' ] );
+        add_action( 'wp_enqueue_scripts', [ Profile::class, 'enqueue_assets' ] );
 
         // Frontend hooks can be registered here for Phase 1 as needed.
     }

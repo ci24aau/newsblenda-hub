@@ -1,0 +1,8 @@
+.nbe-profile-wrap{max-width:640px;margin:20px auto;padding:20px;border:1px solid #e5e5e5;background:#fff;border-radius:4px}
+.nbe-profile-form p{margin-bottom:12px}
+.nbe-profile-form input[type="text"],.nbe-profile-form input[type="password"],.nbe-profile-form textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:3px}
+.nbe-profile-errors{margin-bottom:10px}
+.nbe-profile-error{color:#a00}
+.nbe-profile-messages{margin-bottom:10px}
+.nbe-profile-message{color:#080}
+@media (max-width:480px){.nbe-profile-wrap{margin:10px;padding:16px}}
