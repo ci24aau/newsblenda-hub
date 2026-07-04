@@ -5,7 +5,7 @@ namespace Newsblenda\Editorial\Frontend;
 use WP_User;
 
 /**
- * Frontend Editor Dashboard for reviewers.
+ * Frontend Editor Dashboard for reviewers with search, filters, preview and review actions.
  */
 class EditorDashboard {
     /**
@@ -20,12 +20,17 @@ class EditorDashboard {
      */
     public static function enqueue_assets() {
         $dir = plugin_dir_url( dirname( dirname( __DIR__ ) ) );
-        wp_register_style( 'nbe-editor-dashboard-style', $dir . 'assets/css/editor-dashboard.css', [], '0.1.0' );
-        wp_register_script( 'nbe-editor-dashboard-script', $dir . 'assets/js/editor-dashboard.js', [ 'jquery' ], '0.1.0', true );
+        wp_register_style( 'nbe-editor-dashboard-style', $dir . 'assets/css/editor-dashboard.css', [], '0.2.0' );
+        wp_register_script( 'nbe-editor-dashboard-script', $dir . 'assets/js/editor-dashboard.js', [ 'jquery' ], '0.2.0', true );
     }
 
     /**
      * Render dashboard and handle review actions.
+     *
+     * Supports GET parameters:
+     * - s (search)
+     * - status (pending|reviewed|revision)
+     * - page (pagination)
      *
      * @return string
      */
@@ -52,11 +57,11 @@ class EditorDashboard {
         }
 
         // Ensure status is active/approved
-        $status = get_user_meta( $user->ID, 'nbe_status', true );
-        if ( empty( $status ) ) {
-            $status = 'active';
+        $status_meta = get_user_meta( $user->ID, 'nbe_status', true );
+        if ( empty( $status_meta ) ) {
+            $status_meta = 'active';
         }
-        if ( ! in_array( $status, [ 'active', 'approved' ], true ) ) {
+        if ( ! in_array( $status_meta, [ 'active', 'approved' ], true ) ) {
             wp_safe_redirect( site_url() );
             exit;
         }
@@ -139,8 +144,64 @@ class EditorDashboard {
             }
         }
 
-        // Fetch pending submissions for review
-        $pending = $wpdb->get_results( "SELECT * FROM {$table} WHERE status = 'pending' ORDER BY created_at DESC" );
+        // Handle search and filters (GET)
+        $search = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+        $filter_status = isset( $_GET['status'] ) ? sanitize_text_field( wp_unslash( $_GET['status'] ) ) : 'pending';
+        $page = isset( $_GET['page'] ) ? max( 1, intval( wp_unslash( $_GET['page'] ) ) ) : 1;
+        $per_page = 20;
+        $offset = ( $page - 1 ) * $per_page;
+
+        // Build where clauses safely
+        $where = [ '1=1' ];
+        $params = [];
+
+        if ( 'pending' === $filter_status ) {
+            $where[] = "status = %s";
+            $params[] = 'pending';
+        } elseif ( 'reviewed' === $filter_status ) {
+            $where[] = "(status = %s OR status = %s)";
+            $params[] = 'approved';
+            $params[] = 'rejected';
+        } elseif ( 'revision' === $filter_status ) {
+            $where[] = "status = %s";
+            $params[] = 'revision';
+        } else {
+            // allow all statuses if unknown
+        }
+
+        if ( ! empty( $search ) ) {
+            $where[] = "(title LIKE %s OR content LIKE %s)";
+            $like = '%' . $wpdb->esc_like( $search ) . '%';
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        $where_sql = implode( ' AND ', $where );
+
+        // Count total matching
+        $count_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where_sql}";
+        $count = 0;
+        if ( empty( $params ) ) {
+            $count = intval( $wpdb->get_var( $count_sql ) );
+        } else {
+            $count = intval( $wpdb->get_var( $wpdb->prepare( $count_sql, ...$params ) ) );
+        }
+
+        // Fetch rows
+        $select_sql = "SELECT * FROM {$table} WHERE {$where_sql} ORDER BY created_at DESC LIMIT %d OFFSET %d";
+        $all_params = array_merge( $params, [ $per_page, $offset ] );
+        if ( empty( $params ) ) {
+            $rows = $wpdb->get_results( $wpdb->prepare( $select_sql, $per_page, $offset ) );
+        } else {
+            $rows = $wpdb->get_results( $wpdb->prepare( $select_sql, ...$all_params ) );
+        }
+
+        $total_pages = (int) ceil( $count / $per_page );
+
+        // Counts for tabs
+        $pending_count = intval( $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE status = 'pending'" ) );
+        $reviewed_count = intval( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE status = %s OR status = %s", 'approved', 'rejected' ) ) );
+        $revision_count = intval( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE status = %s", 'revision' ) ) );
 
         ob_start();
         include plugin_dir_path( dirname( __DIR__ ) ) . 'templates/editor-dashboard.php';
