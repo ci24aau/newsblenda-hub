@@ -1,0 +1,8 @@
+.nbe-register-wrap{max-width:640px;margin:20px auto;padding:20px;border:1px solid #e5e5e5;background:#fff;border-radius:4px}
+.nbe-register-form p{margin-bottom:12px}
+.nbe-register-form input[type="text"],.nbe-register-form input[type="email"],.nbe-register-form input[type="password"],.nbe-register-form textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:3px}
+.nbe-register-errors{margin-bottom:10px}
+.nbe-register-error{color:#a00}
+.nbe-register-messages{margin-bottom:10px}
+.nbe-register-message{color:#080}
+@media (max-width:480px){.nbe-register-wrap{margin:10px;padding:16px}}

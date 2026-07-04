@@ -3,6 +3,7 @@
 namespace Newsblenda\Editorial;
 
 use Newsblenda\Editorial\Auth\Shortcodes;
+use Newsblenda\Editorial\Auth\Registration;
 
 /**
  * Main plugin bootstrapper.
@@ -67,6 +68,10 @@ class Plugin {
         // Frontend shortcodes and assets
         add_action( 'init', [ Shortcodes::class, 'init' ] );
         add_action( 'wp_enqueue_scripts', [ Shortcodes::class, 'enqueue_assets' ] );
+
+        // Registration shortcode and assets
+        add_action( 'init', [ Registration::class, 'init' ] );
+        add_action( 'wp_enqueue_scripts', [ Registration::class, 'enqueue_assets' ] );
 
         // Frontend hooks can be registered here for Phase 1 as needed.
     }
