@@ -4,6 +4,8 @@ namespace Newsblenda\Editorial;
 
 use Newsblenda\Editorial\Auth\Shortcodes;
 use Newsblenda\Editorial\Auth\Registration;
+use Newsblenda\Editorial\Auth\PasswordReset;
+use Newsblenda\Editorial\Auth\EmailVerification;
 
 /**
  * Main plugin bootstrapper.
@@ -72,6 +74,13 @@ class Plugin {
         // Registration shortcode and assets
         add_action( 'init', [ Registration::class, 'init' ] );
         add_action( 'wp_enqueue_scripts', [ Registration::class, 'enqueue_assets' ] );
+
+        // Password reset
+        add_action( 'init', [ PasswordReset::class, 'init' ] );
+        add_action( 'wp_enqueue_scripts', [ PasswordReset::class, 'enqueue_assets' ] );
+
+        // Email verification requests
+        add_action( 'init', [ EmailVerification::class, 'init' ] );
 
         // Frontend hooks can be registered here for Phase 1 as needed.
     }
