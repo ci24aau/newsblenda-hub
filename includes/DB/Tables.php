@@ -23,14 +23,21 @@ class Tables {
             id BIGINT(20) NOT NULL AUTO_INCREMENT,
             writer_id BIGINT(20) NOT NULL,
             title TEXT NOT NULL,
+            seo_title TEXT DEFAULT NULL,
+            meta_description TEXT DEFAULT NULL,
+            category VARCHAR(191) DEFAULT NULL,
+            tags TEXT DEFAULT NULL,
+            featured_image_id BIGINT(20) DEFAULT NULL,
+            sources LONGTEXT DEFAULT NULL,
             content LONGTEXT NOT NULL,
+            word_count INT DEFAULT 0,
             status VARCHAR(20) NOT NULL DEFAULT 'draft',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY  (id)
         ) {$charset_collate};";
 
-        // Login attempts table for brute-force protection
+        // Login attempts table for brute-force protection (keep existing schema)
         $login_table = $wpdb->prefix . 'nbe_login_attempts';
         $tables_sql[] = "CREATE TABLE {$login_table} (
             id BIGINT(20) NOT NULL AUTO_INCREMENT,

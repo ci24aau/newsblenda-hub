@@ -8,6 +8,7 @@ use Newsblenda\Editorial\Auth\PasswordReset;
 use Newsblenda\Editorial\Auth\EmailVerification;
 use Newsblenda\Editorial\Frontend\AuthorDashboard;
 use Newsblenda\Editorial\Frontend\Profile;
+use Newsblenda\Editorial\Frontend\ArticleEditor;
 
 /**
  * Main plugin bootstrapper.
@@ -91,6 +92,10 @@ class Plugin {
         // Profile management
         add_action( 'init', [ Profile::class, 'init' ] );
         add_action( 'wp_enqueue_scripts', [ Profile::class, 'enqueue_assets' ] );
+
+        // Article submission
+        add_action( 'init', [ ArticleEditor::class, 'init' ] );
+        add_action( 'wp_enqueue_scripts', [ ArticleEditor::class, 'enqueue_assets' ] );
 
         // Frontend hooks can be registered here for Phase 1 as needed.
     }

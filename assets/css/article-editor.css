@@ -1,0 +1,9 @@
+.nbe-article-editor{max-width:800px;margin:20px auto;padding:20px;background:#fff;border:1px solid #e5e5e5;border-radius:6px}
+.nbe-article-form p{margin-bottom:12px}
+.nbe-article-form input[type="text"],.nbe-article-form textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:3px}
+.nbe-article-errors{margin-bottom:10px}
+.nbe-article-error{color:#a00}
+.nbe-article-messages{margin-bottom:10px}
+.nbe-article-message{color:#080}
+.nbe-article-actions{display:flex;gap:12px}
+@media(max-width:600px){.nbe-article-actions{flex-direction:column}}
