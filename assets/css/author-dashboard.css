@@ -1,0 +1,16 @@
+/* Basic styling for author dashboard */
+.nbe-author-dashboard{max-width:1080px;margin:20px auto;padding:20px;background:#fff;border:1px solid #e5e5e5;border-radius:6px}
+.nbe-dashboard-nav ul{list-style:none;padding:0;margin:0 0 16px 0;display:flex;gap:12px}
+.nbe-dashboard-nav a{display:inline-block;padding:8px 12px;background:#f7f7f7;border-radius:4px;color:#333;text-decoration:none}
+.nbe-dashboard-nav a.active{background:#0073aa;color:#fff}
+.nbe-dashboard-welcome h2{margin:0 0 6px 0}
+.nbe-dashboard-cards{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
+.nbe-dashboard-cards .card{flex:1 1 200px;padding:12px;border:1px solid #eee;border-radius:4px;background:#fafafa}
+.nbe-dashboard-cards .card h3{margin:0 0 6px}
+.nbe-dashboard-cards .card .stat{font-size:22px;font-weight:700}
+.nbe-earnings{margin:16px 0;padding:12px;border:1px solid #eee;border-radius:4px}
+.nbe-recent-articles ul{list-style:none;padding:0;margin:0}
+.nbe-recent-articles li{padding:8px 0;border-bottom:1px solid #f1f1f1}
+.nbe-quick-links ul{list-style:none;padding:0;margin:0}
+.nbe-quick-links li{margin:6px 0}
+@media(max-width:600px){.nbe-dashboard-cards{flex-direction:column}}

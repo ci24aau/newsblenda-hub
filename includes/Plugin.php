@@ -6,6 +6,7 @@ use Newsblenda\Editorial\Auth\Shortcodes;
 use Newsblenda\Editorial\Auth\Registration;
 use Newsblenda\Editorial\Auth\PasswordReset;
 use Newsblenda\Editorial\Auth\EmailVerification;
+use Newsblenda\Editorial\Frontend\AuthorDashboard;
 
 /**
  * Main plugin bootstrapper.
@@ -81,6 +82,10 @@ class Plugin {
 
         // Email verification requests
         add_action( 'init', [ EmailVerification::class, 'init' ] );
+
+        // Author dashboard
+        add_action( 'init', [ AuthorDashboard::class, 'init' ] );
+        add_action( 'wp_enqueue_scripts', [ AuthorDashboard::class, 'enqueue_assets' ] );
 
         // Frontend hooks can be registered here for Phase 1 as needed.
     }
