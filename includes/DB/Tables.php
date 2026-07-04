@@ -51,6 +51,20 @@ class Tables {
             INDEX ip_idx (ip)
         ) {$charset_collate};";
 
+        // Article reviews table to store editorial actions
+        $reviews_table = $wpdb->prefix . 'nbe_article_reviews';
+        $tables_sql[] = "CREATE TABLE {$reviews_table} (
+            id BIGINT(20) NOT NULL AUTO_INCREMENT,
+            article_id BIGINT(20) NOT NULL,
+            reviewer_id BIGINT(20) NOT NULL,
+            action VARCHAR(50) NOT NULL,
+            comment TEXT DEFAULT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            INDEX article_idx (article_id),
+            INDEX reviewer_idx (reviewer_id)
+        ) {$charset_collate};";
+
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         foreach ( $tables_sql as $sql ) {
             dbDelta( $sql );

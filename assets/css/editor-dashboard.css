@@ -1,0 +1,11 @@
+/* Basic editor dashboard styling */
+.nbe-editor-dashboard{max-width:1000px;margin:20px auto;padding:20px;background:#fff;border:1px solid #e5e5e5;border-radius:6px}
+.nbe-submissions{list-style:none;padding:0;margin:0}
+.nbe-submissions .submission{padding:12px;border-bottom:1px solid #f1f1f1;margin-bottom:8px}
+.nbe-submissions h3{margin:0 0 6px}
+.nbe-submissions .meta{font-size:12px;color:#666;margin-bottom:8px}
+.nbe-submissions .content-preview{margin-bottom:8px}
+.nbe-editor-messages{margin-bottom:10px;color:#080}
+.nbe-editor-errors{margin-bottom:10px;color:#a00}
+.nbe-review-form .actions{display:flex;gap:8px}
+@media(max-width:600px){.nbe-review-form .actions{flex-direction:column}}
