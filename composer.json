@@ -1,0 +1,11 @@
+{
+    "name": "ci24aau/newsblenda-editorial",
+    "description": "Newsblenda Editorial plugin (Phase 1)",
+    "type": "wordpress-plugin",
+    "autoload": {
+        "psr-4": {
+            "Newsblenda\\Editorial\\": "includes/"
+        }
+    },
+    "require": {}
+}
