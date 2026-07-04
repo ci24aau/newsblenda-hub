@@ -2,7 +2,7 @@
 
 namespace Newsblenda\Editorial;
 
-use Newsblenda\Editorial\Admin\Menu as AdminMenu;
+use Newsblenda\Editorial\Auth\Shortcodes;
 
 /**
  * Main plugin bootstrapper.
@@ -60,9 +60,13 @@ class Plugin {
     public function loaded() {
         // Admin-only initialisation
         if ( is_admin() ) {
-            AdminMenu::init();
+            Admin\Menu::init();
             add_action( 'admin_init', [ $this, 'restrict_admin_access' ] );
         }
+
+        // Frontend shortcodes and assets
+        add_action( 'init', [ Shortcodes::class, 'init' ] );
+        add_action( 'wp_enqueue_scripts', [ Shortcodes::class, 'enqueue_assets' ] );
 
         // Frontend hooks can be registered here for Phase 1 as needed.
     }
@@ -76,10 +80,44 @@ class Plugin {
             return;
         }
 
-        if ( ! current_user_can( 'manage_options' ) && is_admin() ) {
-            // Allow access to admin-ajax.php for authorised usage
-            wp_safe_redirect( home_url() );
-            exit;
+        if ( ! is_user_logged_in() ) {
+            // let WP handle login redirect
+            return;
         }
+
+        if ( current_user_can( 'manage_options' ) ) {
+            // administrators may access wp-admin
+            return;
+        }
+
+        // For other roles, determine user status and map to frontend pages
+        $user = wp_get_current_user();
+        $status = get_user_meta( $user->ID, 'nbe_status', true );
+        if ( empty( $status ) ) {
+            $status = 'active';
+        }
+
+        switch ( $status ) {
+            case 'pending':
+                wp_safe_redirect( site_url( '/pending' ) );
+                break;
+            case 'restricted':
+                wp_safe_redirect( site_url( '/restricted' ) );
+                break;
+            case 'blocked':
+                wp_safe_redirect( site_url( '/suspended' ) );
+                break;
+            default:
+                // active or unknown — send to their dashboard based on role
+                if ( in_array( 'nbe_editor', (array) $user->roles, true ) || in_array( 'editor', (array) $user->roles, true ) ) {
+                    wp_safe_redirect( site_url( '/editor-dashboard' ) );
+                } else {
+                    // authors and others
+                    wp_safe_redirect( site_url( '/author-dashboard' ) );
+                }
+                break;
+        }
+
+        exit;
     }
 }

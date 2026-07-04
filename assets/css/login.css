@@ -1,0 +1,7 @@
+.nbe-login-wrap{max-width:420px;margin:20px auto;padding:20px;border:1px solid #e5e5e5;background:#fff;border-radius:4px}
+.nbe-login-form p{margin-bottom:12px}
+.nbe-login-form input[type="text"],.nbe-login-form input[type="password"]{width:100%;padding:8px;border:1px solid #ddd;border-radius:3px}
+.nbe-toggle-password{margin-top:6px;background:transparent;border:0;color:#0073aa;cursor:pointer}
+.nbe-login-errors{margin-bottom:10px}
+.nbe-login-error{color:#a00}
+@media (max-width:480px){.nbe-login-wrap{margin:10px;padding:16px}}
