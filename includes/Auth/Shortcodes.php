@@ -3,6 +3,7 @@
 namespace Newsblenda\Editorial\Auth;
 
 use Newsblenda\Editorial\Auth\BruteForce;
+use Newsblenda\Editorial\Auth\EmailVerification;
 use WP_Error;
 
 /**
@@ -38,7 +39,27 @@ class Shortcodes {
         $errors = [];
         $messages = [];
 
-        // Handle POST
+        // Handle resend verification POST first
+        if ( 'POST' === strtoupper( $_SERVER['REQUEST_METHOD'] ) && isset( $_POST['nbe_resend_action'] ) ) {
+            if ( ! isset( $_POST['nbe_resend_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nbe_resend_nonce'] ) ), 'nbe_resend' ) ) {
+                $errors[] = __( 'Security check failed. Please try again.', 'newsblenda-editorial' );
+            } else {
+                $email = isset( $_POST['nbe_resend_email'] ) ? sanitize_email( wp_unslash( $_POST['nbe_resend_email'] ) ) : '';
+                if ( empty( $email ) || ! is_email( $email ) ) {
+                    $errors[] = __( 'Please provide a valid email address.', 'newsblenda-editorial' );
+                } else {
+                    $user = get_user_by( 'email', $email );
+                    // Always show generic message to avoid revealing account existence
+                    $messages[] = __( 'If an account exists with that email address, a verification email has been sent.', 'newsblenda-editorial' );
+                    if ( $user ) {
+                        // Generate new token and send
+                        EmailVerification::generate_and_send( $user->ID );
+                    }
+                }
+            }
+        }
+
+        // Handle POST login
         if ( 'POST' === strtoupper( $_SERVER['REQUEST_METHOD'] ) && isset( $_POST['nbe_login_action'] ) ) {
             if ( ! isset( $_POST['nbe_login_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nbe_login_nonce'] ) ), 'nbe_login' ) ) {
                 $errors[] = __( 'Security check failed. Please try again.', 'newsblenda-editorial' );
@@ -66,52 +87,73 @@ class Shortcodes {
                         $user_login = $user_obj ? $user_obj->user_login : '';
                     } else {
                         $user_login = $identifier;
+                        $user_obj = get_user_by( 'login', $user_login );
                     }
 
-                    $creds = [
-                        'user_login'    => $user_login,
-                        'user_password' => $password,
-                        'remember'      => $remember,
-                    ];
-
-                    $user = wp_signon( $creds, is_ssl() );
-
-                    if ( is_wp_error( $user ) ) {
-                        // Record failed attempt
-                        BruteForce::record_failed_attempt( $identifier, $ip );
-
-                        // Generic error message for security
-                        $errors[] = __( 'Invalid login credentials. Please check your username/email and password.', 'newsblenda-editorial' );
-                    } else {
-                        // Successful login — reset attempts
-                        BruteForce::clear_attempts( $identifier, $ip );
-
-                        // Check user status
-                        $status = get_user_meta( $user->ID, 'nbe_status', true );
-                        if ( empty( $status ) ) {
-                            $status = 'active';
+                    // If user exists, check email verification before attempting signon
+                    if ( $user_obj ) {
+                        $verified = (int) get_user_meta( $user_obj->ID, 'nbe_email_verified', true );
+                        if ( 1 !== $verified ) {
+                            // Prevent login until email verified
+                            $errors[] = __( 'Please verify your email address before logging in. Check your inbox or resend the verification email.', 'newsblenda-editorial' );
                         }
+                    }
 
-                        // Determine redirect
-                        $redirect = home_url();
-                        if ( in_array( 'administrator', (array) $user->roles, true ) || current_user_can( 'manage_options' ) ) {
-                            $redirect = admin_url();
-                        } elseif ( 'pending' === $status ) {
-                            $redirect = site_url( '/pending' );
-                        } elseif ( 'restricted' === $status ) {
-                            $redirect = site_url( '/restricted' );
-                        } elseif ( 'blocked' === $status ) {
-                            $redirect = site_url( '/suspended' );
-                        } elseif ( in_array( 'nbe_editor', (array) $user->roles, true ) || in_array( 'editor', (array) $user->roles, true ) ) {
-                            $redirect = site_url( '/editor-dashboard' );
+                    if ( empty( $errors ) ) {
+                        $creds = [
+                            'user_login'    => $user_login,
+                            'user_password' => $password,
+                            'remember'      => $remember,
+                        ];
+
+                        $user = wp_signon( $creds, is_ssl() );
+
+                        if ( is_wp_error( $user ) ) {
+                            // Record failed attempt
+                            BruteForce::record_failed_attempt( $identifier, $ip );
+
+                            // Generic error message for security
+                            $errors[] = __( 'Invalid login credentials. Please check your username/email and password.', 'newsblenda-editorial' );
                         } else {
-                            $redirect = site_url( '/author-dashboard' );
-                        }
+                            // Successful login — reset attempts
+                            BruteForce::clear_attempts( $identifier, $ip );
 
-                        wp_safe_redirect( $redirect );
-                        exit;
+                            // Check user status
+                            $status = get_user_meta( $user->ID, 'nbe_status', true );
+                            if ( empty( $status ) ) {
+                                $status = 'active';
+                            }
+
+                            // Determine redirect
+                            $redirect = home_url();
+                            if ( in_array( 'administrator', (array) $user->roles, true ) || current_user_can( 'manage_options' ) ) {
+                                $redirect = admin_url();
+                            } elseif ( 'pending' === $status ) {
+                                $redirect = site_url( '/pending' );
+                            } elseif ( 'restricted' === $status ) {
+                                $redirect = site_url( '/restricted' );
+                            } elseif ( 'blocked' === $status ) {
+                                $redirect = site_url( '/suspended' );
+                            } elseif ( in_array( 'nbe_editor', (array) $user->roles, true ) || in_array( 'editor', (array) $user->roles, true ) ) {
+                                $redirect = site_url( '/editor-dashboard' );
+                            } else {
+                                $redirect = site_url( '/author-dashboard' );
+                            }
+
+                            wp_safe_redirect( $redirect );
+                            exit;
+                        }
                     }
                 }
+            }
+        }
+
+        // Display verification GET result messages
+        if ( isset( $_GET['nbe_verification'] ) ) {
+            if ( 'success' === $_GET['nbe_verification'] ) {
+                $messages[] = __( 'Email verified successfully. You may now log in. Your account may still require admin approval.', 'newsblenda-editorial' );
+            } else {
+                $errors[] = __( 'Verification failed or token expired. Please request a new verification email.', 'newsblenda-editorial' );
             }
         }
 
